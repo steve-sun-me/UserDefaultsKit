@@ -24,5 +24,9 @@ struct Foo {
         userDefaults.set(result, forKey: key)
     }
 
+    func number(forKey key: String) -> Int {
+        userDefaults.integer(forKey: key)
+    }
+
     private let userDefaults: UserDefaultsProtocol
 }
