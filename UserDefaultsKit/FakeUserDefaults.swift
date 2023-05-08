@@ -5,15 +5,23 @@
 //  Created by Steve Sun on 2023-05-06.
 //
 
-public final class FakeUserDefaults: UserDefaultsProtocol {
-    public var values: [String: Any]
+import Foundation
 
+@objc
+public final class FakeUserDefaults: NSObject, UserDefaultsProtocol {
+    @objc public var values: [String: Any]
+
+    @objc(initWithValues:)
     public init(values: [String: Any] = [:]) {
         self.values = values
     }
 
     public func object(forKey defaultName: String) -> Any? {
         return values[defaultName]
+    }
+
+    public func url(forKey defaultName: String) -> URL? {
+        return object(forKey: defaultName) as? URL
     }
 
     public func string(forKey defaultName: String) -> String? {
@@ -38,6 +46,26 @@ public final class FakeUserDefaults: UserDefaultsProtocol {
 
     public func set(_ value: Any?, forKey defaultName: String) {
         values[defaultName] = value
+    }
+
+    public func set(_ value: Int, forKey defaultName: String) {
+        values[defaultName] = value
+    }
+
+    public func set(_ value: Float, forKey defaultName: String) {
+        values[defaultName] = value
+    }
+
+    public func set(_ value: Double, forKey defaultName: String) {
+        values[defaultName] = value
+    }
+
+    public func set(_ value: Bool, forKey defaultName: String) {
+        values[defaultName] = value
+    }
+
+    public func set(_ url: URL?, forKey defaultName: String) {
+        values[defaultName] = url
     }
 
     public func removeObject(forKey defaultName: String) {
