@@ -16,69 +16,103 @@ public final class FakeUserDefaults: NSObject, UserDefaultsProtocol {
         self.values = values
     }
 
-    public func object(forKey defaultName: String) -> Any? {
-        return values[defaultName]
+    public func object(forKey defaultName: String) -> Any? {        
+        queue.sync {
+            return values[defaultName]
+        }
     }
 
     public func url(forKey defaultName: String) -> URL? {
-        return object(forKey: defaultName) as? URL
+        queue.sync {
+            return object(forKey: defaultName) as? URL
+        }
     }
 
     public func string(forKey defaultName: String) -> String? {
-        return object(forKey: defaultName) as? String
+        queue.sync {
+            return object(forKey: defaultName) as? String
+        }
     }
 
     public func bool(forKey defaultName: String) -> Bool {
-        return object(forKey: defaultName) as? Bool ?? false
+        queue.sync {
+            return object(forKey: defaultName) as? Bool ?? false
+        }
     }
 
     public func integer(forKey defaultName: String) -> Int {
-        return object(forKey: defaultName) as? Int ?? 0
+        queue.sync {
+            return object(forKey: defaultName) as? Int ?? 0
+        }
     }
 
     public func float(forKey defaultName: String) -> Float {
-        return object(forKey: defaultName) as? Float ?? 0
+        queue.sync {
+            return object(forKey: defaultName) as? Float ?? 0
+        }
     }
 
     public func double(forKey defaultName: String) -> Double {
-        return object(forKey: defaultName) as? Double ?? 0
+        queue.sync {
+            return object(forKey: defaultName) as? Double ?? 0
+        }
     }
 
     public func set(_ value: Any?, forKey defaultName: String) {
-        values[defaultName] = value
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values[defaultName] = value
+        }
     }
 
     public func set(_ value: Int, forKey defaultName: String) {
-        values[defaultName] = value
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values[defaultName] = value
+        }
     }
 
     public func set(_ value: Float, forKey defaultName: String) {
-        values[defaultName] = value
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values[defaultName] = value
+        }
     }
 
     public func set(_ value: Double, forKey defaultName: String) {
-        values[defaultName] = value
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values[defaultName] = value
+        }
     }
 
     public func set(_ value: Bool, forKey defaultName: String) {
-        values[defaultName] = value
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values[defaultName] = value
+        }
     }
 
     public func set(_ url: URL?, forKey defaultName: String) {
-        values[defaultName] = url
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values[defaultName] = url
+        }
     }
 
     public func removeObject(forKey defaultName: String) {
-        values.removeValue(forKey: defaultName)
+        queue.async(flags: .barrier) { [weak self] in
+            self?.values.removeValue(forKey: defaultName)
+        }
     }
 
     public func dictionaryRepresentation() -> [String: Any] {
-        return values
+        queue.sync {
+            return values
+        }
     }
 
     public func register(defaults registrationDictionary: [String: Any]) {
-        for (key, value) in registrationDictionary where !values.keys.contains(key) {
-            values[key] = value
+        queue.async(flags: .barrier) { [weak self] in
+            for (key, value) in registrationDictionary where self?.values.keys.contains(key) == false {
+                self?.values[key] = value
+            }
         }
     }
+
+    private let queue: DispatchQueue = DispatchQueue(label: "com.steve.UserDefaultsKit", attributes: .concurrent)
 }

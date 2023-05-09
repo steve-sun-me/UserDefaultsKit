@@ -5,4 +5,4 @@ The repo provides example of mocking `UserDefaults` in tests, an interface repre
 Feel free to grab the code and modify as you need
 
 ## TODOs
-- [ ] Make `FakeUserDefaults` thread safe
+- [x] Make `FakeUserDefaults` thread safe
