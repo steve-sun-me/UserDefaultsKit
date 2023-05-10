@@ -53,9 +53,6 @@ public protocol UserDefaultsProtocol {
 
     @objc(dictionaryRepresentation)
     func dictionaryRepresentation() -> [String: Any]
-
-    @objc(registerDefaults:)
-    func register(defaults registrationDictionary: [String: Any])
 }
 
 extension UserDefaults: UserDefaultsProtocol {}
