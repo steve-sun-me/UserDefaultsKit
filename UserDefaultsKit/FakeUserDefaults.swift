@@ -9,15 +9,21 @@ import Foundation
 
 @objc
 public final class FakeUserDefaults: NSObject, UserDefaultsProtocol {
-    @objc public var values: [String: Any]
+    @objc private var values: [String: Any]
 
     @objc(initWithValues:)
     public init(values: [String: Any] = [:]) {
         self.values = values
+        self.lock = UnsafeMutablePointer<os_unfair_lock_s>.allocate(capacity: 1)
+        self.lock.initialize(to: os_unfair_lock())
+    }
+
+    deinit {
+        lock.deallocate()
     }
 
     public func object(forKey defaultName: String) -> Any? {
-        queue.sync {
+        withLock {
             return values[defaultName]
         }
     }
@@ -71,22 +77,31 @@ public final class FakeUserDefaults: NSObject, UserDefaultsProtocol {
     }
 
     public func removeObject(forKey defaultName: String) {
-        queue.async(flags: .barrier) { [weak self] in
-            self?.values.removeValue(forKey: defaultName)
+        withLock {
+            self.values.removeValue(forKey: defaultName)
         }
     }
 
     public func dictionaryRepresentation() -> [String: Any] {
-        queue.sync {
-            return values
+        withLock {
+            self.values
         }
     }
 
     private func store(_ value: Any?, forKey defaultName: String) {
-        queue.async(flags: .barrier) { [weak self] in
-            self?.values[defaultName] = value
+        withLock {
+            self.values[defaultName] = value
         }
     }
 
-    private let queue: DispatchQueue = DispatchQueue(label: "com.steve.UserDefaultsKit", attributes: .concurrent)
+    @discardableResult
+    private func withLock<Value>(_ block: () -> Value) -> Value {
+        os_unfair_lock_lock(lock)
+        defer {
+            os_unfair_lock_unlock(lock)
+        }
+        return block()
+    }
+
+    private var lock: UnsafeMutablePointer<os_unfair_lock_s>
 }
